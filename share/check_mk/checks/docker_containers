@@ -1,0 +1,58 @@
+def unitsToValue(val):
+  if val[-1] == 'B':
+    val = val[:-1];
+  if val[-1] == 'i':
+    val = val[:-1];
+  mult = 1
+  if val[-1] == 'K':
+    mult = 1024;
+    val = val[:-1];
+  elif val[-1] == 'M':
+    mult = 1024 * 1024;
+    val = val[:-1];
+  elif val[-1] == 'G':
+    mult = 1024 * 1024 * 1024
+    val = val[:-1];
+  elif val[-1] == 'T':
+    mult = 1024 * 1024 * 1024 * 1024
+    val = val[:-1];
+  elif val[-1] == 'E':
+    mult = 1024 * 1024 * 1024 * 1024 * 1024
+    val = val[:-1];
+  return float(val) * float(mult);
+    
+# the inventory function (dummy)
+def inventory_docker_containers(info):
+  for value in info:
+    name = value[0];
+    yield name, None
+
+# the check function (dummy)
+def check_docker_containers(item, params, info):
+  for data in info:
+    name = data[0]
+    value = data[1]
+
+    if name == item:
+      if value == 'UP':
+        if (len(data) > 2):
+          cpu_usage = float(data[3][:-1])
+          mem_usage_pct = float(data[4][:-1])
+          mem_usage = unitsToValue(data[5])
+          return 0, "Docker container '{0}' is running CPU Usage: {1:.2f}% Memory Usage: {2:.2f}% ({3})".format(name, cpu_usage, mem_usage_pct, data[5]), [ ( 'CPU usage', cpu_usage, "", "", 0.0, 100.0 ) , ( 'Memory usage pct', mem_usage_pct, "", "", 0.0, 100.0 ) , ( 'Memory usage', mem_usage, "", "", 0 ) ];
+        else:
+          return 0, "Docker container '{0}' is running".format(name), [];
+      elif value == 'RESTARTING':
+        return 1, "Docker container '{0}' is restarting".format(name), [];
+      elif value == 'EXITED':
+        return 2, "Docker container '{0}' NOT running".format(name), [];
+      else:
+        return 3, "Sorry - not implemented: " + value, []
+
+# declare the check to Check_MK
+check_info["docker_containers"] = {
+    'check_function':            check_docker_containers,
+    'inventory_function':        inventory_docker_containers,
+    'service_description':       'Docker container %s',
+    'has_perfdata':              True,
+}

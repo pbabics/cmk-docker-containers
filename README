@@ -1,0 +1,5 @@
+# Docker services Check
+
+This is a basic Docker containerss check for Check_MK/OMD.
+
+This is plugin for Check_MK/OMD, it monitors states of all docker containers and their cpu and memory usage.
